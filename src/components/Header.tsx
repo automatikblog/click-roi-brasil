@@ -8,8 +8,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const Header = () => {
+  const { user, signOut } = useAuth();
   return (
     <header className="bg-card border-b border-border/50 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -39,17 +41,17 @@ export const Header = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>João Silva</DropdownMenuLabel>
-              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-                joao@exemplo.com
-              </DropdownMenuLabel>
+              <DropdownMenuLabel>{user?.email || 'Usuário'}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <Settings className="mr-2 h-4 w-4" />
                 Configurações
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem 
+                className="text-destructive"
+                onClick={() => signOut()}
+              >
                 Sair
               </DropdownMenuItem>
             </DropdownMenuContent>

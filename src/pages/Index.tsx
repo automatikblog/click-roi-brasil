@@ -2,9 +2,16 @@ import { Header } from "@/components/Header";
 import { MetricCard } from "@/components/MetricCard";
 import { ChannelChart } from "@/components/ChannelChart";
 import { TopAdsTable } from "@/components/TopAdsTable";
+import { useMetrics } from "@/hooks/useMetrics";
 import { DollarSign, TrendingUp, Target, MousePointer } from "lucide-react";
 
 const Index = () => {
+  const { investimentoTotal, faturamentoTotal, roiMedio, totalVendas, loading } = useMetrics();
+
+  const formatCurrency = (value: number) => {
+    return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/30">
       <Header />
@@ -14,27 +21,31 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricCard
             title="Investimento Total"
-            value="R$ 8.400,00"
+            value={formatCurrency(investimentoTotal)}
             change={{ value: 12.5, isPositive: true }}
             icon={<DollarSign className="h-5 w-5" />}
+            loading={loading}
           />
           <MetricCard
             title="Faturamento Total"
-            value="R$ 29.400,00"
+            value={formatCurrency(faturamentoTotal)}
             change={{ value: 18.2, isPositive: true }}
             icon={<TrendingUp className="h-5 w-5" />}
+            loading={loading}
           />
           <MetricCard
             title="ROI Médio"
-            value="250%"
+            value={`${roiMedio.toFixed(1)}%`}
             change={{ value: 5.8, isPositive: true }}
             icon={<Target className="h-5 w-5" />}
+            loading={loading}
           />
           <MetricCard
             title="Total de Vendas"
-            value="80"
+            value={totalVendas.toString()}
             change={{ value: 22.1, isPositive: true }}
             icon={<MousePointer className="h-5 w-5" />}
+            loading={loading}
           />
         </div>
 

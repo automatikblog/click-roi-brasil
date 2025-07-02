@@ -37,20 +37,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (event === 'SIGNED_IN' && session?.user) {
         setTimeout(async () => {
           try {
+            console.log('🔐 AuthContext: Creating user record for:', session.user.id, session.user.email)
+            
             // Insert user record
-            await supabase.from('usuarios').upsert({
+            const { error: userError } = await supabase.from('usuarios').upsert({
               id: session.user.id,
               email: session.user.email!
             })
             
+            if (userError) {
+              console.error('❌ AuthContext: Error creating user record:', userError)
+              return
+            }
+            console.log('✅ AuthContext: User record created successfully')
+            
             // Check if user has any company associations, if not create a default company
-            const { data: existingAssociation } = await supabase
+            const { data: existingAssociation, error: associationError } = await supabase
               .from('usuarios_empresas')
               .select('id')
               .eq('usuario_id', session.user.id)
               .maybeSingle()
             
+            if (associationError) {
+              console.error('❌ AuthContext: Error checking associations:', associationError)
+              return
+            }
+            
             if (!existingAssociation) {
+              console.log('🏢 AuthContext: No existing company, creating default...')
+              
               // Create a default company
               const { data: newCompany, error: companyError } = await supabase
                 .from('empresas')
@@ -61,19 +76,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 .select()
                 .single()
 
-              if (!companyError && newCompany) {
+              if (companyError) {
+                console.error('❌ AuthContext: Error creating company:', companyError)
+                return
+              }
+              
+              console.log('✅ AuthContext: Company created:', newCompany)
+
+              if (newCompany) {
                 // Associate user with the new company
-                await supabase.from('usuarios_empresas').insert({
+                const { error: relationError } = await supabase.from('usuarios_empresas').insert({
                   usuario_id: session.user.id,
                   empresa_id: newCompany.id,
                   role: 'owner',
                   permissions: ['read', 'write', 'delete', 'admin'],
                   is_active: true
                 })
+                
+                if (relationError) {
+                  console.error('❌ AuthContext: Error creating association:', relationError)
+                } else {
+                  console.log('✅ AuthContext: User-company association created')
+                }
               }
+            } else {
+              console.log('👍 AuthContext: User already has company associations')
             }
           } catch (error) {
-            console.error('Error creating user/company records:', error)
+            console.error('❌ AuthContext: Unexpected error in user/company setup:', error)
           }
         }, 0)
       }

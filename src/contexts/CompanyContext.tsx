@@ -119,9 +119,45 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
   }
 
   const createCompany = async (name: string) => {
-    if (!user) return
+    if (!user) {
+      console.error('❌ CompanyContext: No user found when trying to create company')
+      throw new Error('Usuário não autenticado')
+    }
+
+    console.log('🏢 CompanyContext: Creating company:', name, 'for user:', user.id, user.email)
 
     try {
+      // Verify user exists in usuarios table first
+      const { data: userExists, error: userCheckError } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (userCheckError) {
+        console.error('❌ CompanyContext: Error checking user existence:', userCheckError)
+        throw new Error('Erro ao verificar usuário: ' + userCheckError.message)
+      }
+
+      if (!userExists) {
+        console.error('❌ CompanyContext: User not found in usuarios table')
+        // Try to create user record
+        const { error: createUserError } = await supabase
+          .from('usuarios')
+          .insert({
+            id: user.id,
+            email: user.email!
+          })
+
+        if (createUserError) {
+          console.error('❌ CompanyContext: Error creating user record:', createUserError)
+          throw new Error('Erro ao criar registro de usuário: ' + createUserError.message)
+        }
+        console.log('✅ CompanyContext: User record created')
+      }
+
+      console.log('👤 CompanyContext: User verified, proceeding with company creation')
+
       // Create company
       const { data: company, error: companyError } = await supabase
         .from('empresas')
@@ -132,7 +168,12 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
         .select()
         .single()
 
-      if (companyError) throw companyError
+      if (companyError) {
+        console.error('❌ CompanyContext: Error creating company:', companyError)
+        throw new Error('Erro ao criar empresa: ' + companyError.message)
+      }
+
+      console.log('✅ CompanyContext: Company created successfully:', company)
 
       // Add user to company as owner
       const { error: relationError } = await supabase
@@ -145,11 +186,17 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
           is_active: companies.length === 0 // Set as active if it's the first company
         })
 
-      if (relationError) throw relationError
+      if (relationError) {
+        console.error('❌ CompanyContext: Error creating user-company association:', relationError)
+        throw new Error('Erro ao associar usuário à empresa: ' + relationError.message)
+      }
+
+      console.log('✅ CompanyContext: User-company association created successfully')
 
       await fetchCompanies()
-    } catch (error) {
-      console.error('Error creating company:', error)
+      console.log('✅ CompanyContext: Company creation process completed')
+    } catch (error: any) {
+      console.error('❌ CompanyContext: Unexpected error in createCompany:', error)
       throw error
     }
   }

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { CompanySelector } from "./CompanySelector";
 
 export const Header = () => {
   const { user, signOut } = useAuth();
@@ -32,6 +33,8 @@ export const Header = () => {
         </div>
 
         <div className="flex items-center space-x-4">
+          <CompanySelector />
+          
           <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
             <Bell className="h-5 w-5" />
           </Button>

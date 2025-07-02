@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
-import { useAuth } from '@/contexts/AuthContext'
+import { useCompany } from '@/contexts/CompanyContext'
 
 interface ChannelData {
   name: string
@@ -20,10 +20,10 @@ export function useChannelData(): ChannelDataHook {
     loading: true,
     error: null,
   })
-  const { user } = useAuth()
+  const { activeCompany } = useCompany()
 
   useEffect(() => {
-    if (!user) return
+    if (!activeCompany) return
 
     const fetchChannelData = async () => {
       try {
@@ -34,20 +34,11 @@ export function useChannelData(): ChannelDataHook {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
 
-        // Get user's company
-        const { data: empresa } = await supabase
-          .from('empresas')
-          .select('id')
-          .eq('usuario_id', user.id)
-          .single()
-
-        if (!empresa) throw new Error('Empresa não encontrada')
-
         // Get sessions grouped by UTM source for this month
         const { data: sessoes } = await supabase
           .from('sessoes')
           .select('utm_source')
-          .eq('empresa_id', empresa.id)
+          .eq('empresa_id', activeCompany.id)
           .gte('created_at', startOfMonth.toISOString())
           .lte('created_at', endOfMonth.toISOString())
 
@@ -97,7 +88,7 @@ export function useChannelData(): ChannelDataHook {
     }
 
     fetchChannelData()
-  }, [user])
+  }, [activeCompany])
 
   return state
 }

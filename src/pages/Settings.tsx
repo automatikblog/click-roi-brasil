@@ -1,6 +1,8 @@
 import { Header } from "@/components/Header";
 import { TrackingInstructions } from "@/components/TrackingInstructions";
+import { CompanyManagement } from "@/components/CompanyManagement";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -30,7 +32,20 @@ const Settings = () => {
           </div>
         </div>
 
-        <TrackingInstructions />
+        <Tabs defaultValue="tracking" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="tracking">Rastreamento</TabsTrigger>
+            <TabsTrigger value="companies">Empresas</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="tracking">
+            <TrackingInstructions />
+          </TabsContent>
+          
+          <TabsContent value="companies">
+            <CompanyManagement />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

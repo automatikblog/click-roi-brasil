@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
-import { useAuth } from '@/contexts/AuthContext'
+import { useCompany } from '@/contexts/CompanyContext'
 
 interface Metrics {
   investimentoTotal: number
@@ -20,10 +20,10 @@ export function useMetrics(): Metrics {
     loading: true,
     error: null,
   })
-  const { user } = useAuth()
+  const { activeCompany } = useCompany()
 
   useEffect(() => {
-    if (!user) return
+    if (!activeCompany) return
 
     const fetchMetrics = async () => {
       try {
@@ -34,20 +34,11 @@ export function useMetrics(): Metrics {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
 
-        // Get user's company
-        const { data: empresa } = await supabase
-          .from('empresas')
-          .select('id')
-          .eq('usuario_id', user.id)
-          .single()
-
-        if (!empresa) throw new Error('Empresa não encontrada')
-
         // Get total investment (from campanhas)
         const { data: campanhas } = await supabase
           .from('campanhas')
           .select('investimento')
-          .eq('empresa_id', empresa.id)
+          .eq('empresa_id', activeCompany.id)
           .gte('periodo', startOfMonth.toISOString())
           .lte('periodo', endOfMonth.toISOString())
 
@@ -57,7 +48,7 @@ export function useMetrics(): Metrics {
         const { data: conversoes } = await supabase
           .from('conversoes')
           .select('valor')
-          .eq('empresa_id', empresa.id)
+          .eq('empresa_id', activeCompany.id)
           .gte('data_conversao', startOfMonth.toISOString())
           .lte('data_conversao', endOfMonth.toISOString())
 
@@ -86,7 +77,7 @@ export function useMetrics(): Metrics {
     }
 
     fetchMetrics()
-  }, [user])
+  }, [activeCompany])
 
   return metrics
 }

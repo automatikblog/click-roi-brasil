@@ -43,18 +43,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               email: session.user.email!
             })
             
-            // Check if user has a company, if not create one
-            const { data: existingCompany } = await supabase
-              .from('empresas')
+            // Check if user has any company associations, if not create a default company
+            const { data: existingAssociation } = await supabase
+              .from('usuarios_empresas')
               .select('id')
               .eq('usuario_id', session.user.id)
-              .single()
+              .maybeSingle()
             
-            if (!existingCompany) {
-              await supabase.from('empresas').insert({
-                nome: `Empresa de ${session.user.email?.split('@')[0]}`,
-                usuario_id: session.user.id
-              })
+            if (!existingAssociation) {
+              // Create a default company
+              const { data: newCompany, error: companyError } = await supabase
+                .from('empresas')
+                .insert({
+                  nome: `Empresa de ${session.user.email?.split('@')[0]}`,
+                  creator_id: session.user.id
+                })
+                .select()
+                .single()
+
+              if (!companyError && newCompany) {
+                // Associate user with the new company
+                await supabase.from('usuarios_empresas').insert({
+                  usuario_id: session.user.id,
+                  empresa_id: newCompany.id,
+                  role: 'owner',
+                  permissions: ['read', 'write', 'delete', 'admin'],
+                  is_active: true
+                })
+              }
             }
           } catch (error) {
             console.error('Error creating user/company records:', error)

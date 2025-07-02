@@ -92,26 +92,26 @@ export type Database = {
       empresas: {
         Row: {
           created_at: string
+          creator_id: string | null
           id: string
           nome: string
-          usuario_id: string
         }
         Insert: {
           created_at?: string
+          creator_id?: string | null
           id?: string
           nome: string
-          usuario_id: string
         }
         Update: {
           created_at?: string
+          creator_id?: string | null
           id?: string
           nome?: string
-          usuario_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "empresas_usuario_id_fkey"
-            columns: ["usuario_id"]
+            foreignKeyName: "empresas_creator_id_fkey"
+            columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
@@ -189,6 +189,54 @@ export type Database = {
         }
         Relationships: []
       }
+      usuarios_empresas: {
+        Row: {
+          created_at: string
+          empresa_id: string
+          id: string
+          is_active: boolean | null
+          permissions: string[] | null
+          role: string
+          updated_at: string
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          empresa_id: string
+          id?: string
+          is_active?: boolean | null
+          permissions?: string[] | null
+          role?: string
+          updated_at?: string
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          is_active?: boolean | null
+          permissions?: string[] | null
+          role?: string
+          updated_at?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usuarios_empresas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuarios_empresas_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -197,6 +245,16 @@ export type Database = {
       get_user_empresa_id: {
         Args: { user_id: string }
         Returns: string
+      }
+      get_user_empresas: {
+        Args: { user_id: string }
+        Returns: {
+          empresa_id: string
+        }[]
+      }
+      user_has_empresa_access: {
+        Args: { user_id: string; empresa_id: string }
+        Returns: boolean
       }
     }
     Enums: {

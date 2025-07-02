@@ -9,13 +9,195 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      campanhas: {
+        Row: {
+          canal: string
+          empresa_id: string
+          id: string
+          investimento: number
+          nome: string
+          periodo: string
+        }
+        Insert: {
+          canal: string
+          empresa_id: string
+          id?: string
+          investimento: number
+          nome: string
+          periodo?: string
+        }
+        Update: {
+          canal?: string
+          empresa_id?: string
+          id?: string
+          investimento?: number
+          nome?: string
+          periodo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campanhas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversoes: {
+        Row: {
+          data_conversao: string
+          empresa_id: string
+          id: string
+          produto: string
+          sessao_id: string | null
+          valor: number
+          webhook_source: string
+        }
+        Insert: {
+          data_conversao?: string
+          empresa_id: string
+          id?: string
+          produto: string
+          sessao_id?: string | null
+          valor: number
+          webhook_source: string
+        }
+        Update: {
+          data_conversao?: string
+          empresa_id?: string
+          id?: string
+          produto?: string
+          sessao_id?: string | null
+          valor?: number
+          webhook_source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversoes_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversoes_sessao_id_fkey"
+            columns: ["sessao_id"]
+            isOneToOne: false
+            referencedRelation: "sessoes"
+            referencedColumns: ["session_id"]
+          },
+        ]
+      }
+      empresas: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "empresas_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessoes: {
+        Row: {
+          created_at: string
+          device_type: string | null
+          empresa_id: string
+          fbclid: string | null
+          gclid: string | null
+          id: string
+          ip: string | null
+          session_id: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_type?: string | null
+          empresa_id: string
+          fbclid?: string | null
+          gclid?: string | null
+          id?: string
+          ip?: string | null
+          session_id: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_type?: string | null
+          empresa_id?: string
+          fbclid?: string | null
+          gclid?: string | null
+          id?: string
+          ip?: string | null
+          session_id?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessoes_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usuarios: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_empresa_id: {
+        Args: { user_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

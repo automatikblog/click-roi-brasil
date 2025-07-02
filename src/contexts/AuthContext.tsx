@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/integrations/supabase/client'
 
 interface AuthContextType {
   user: User | null
@@ -29,9 +29,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
+      
+      // Create user and company records if new user
+      if (event === 'SIGNED_IN' && session?.user) {
+        setTimeout(async () => {
+          try {
+            // Insert user record
+            await supabase.from('usuarios').upsert({
+              id: session.user.id,
+              email: session.user.email!
+            })
+            
+            // Check if user has a company, if not create one
+            const { data: existingCompany } = await supabase
+              .from('empresas')
+              .select('id')
+              .eq('usuario_id', session.user.id)
+              .single()
+            
+            if (!existingCompany) {
+              await supabase.from('empresas').insert({
+                nome: `Empresa de ${session.user.email?.split('@')[0]}`,
+                usuario_id: session.user.id
+              })
+            }
+          } catch (error) {
+            console.error('Error creating user/company records:', error)
+          }
+        }, 0)
+      }
+      
       setLoading(false)
     })
 
@@ -47,9 +77,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signUp = async (email: string, password: string) => {
+    const redirectUrl = `${window.location.origin}/`
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: redirectUrl
+      }
     })
     if (error) throw error
   }
